@@ -1,0 +1,27 @@
+---
+title: "P8106_HW3_SY3352"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = T, message = FALSE, results='hide', warning=FALSE}
+library(caret)
+library(glmnet)
+library(tidymodels)
+library(pROC)
+```
+
+```{r}
+dat <- read.csv("auto.csv") |> na.omit()
+
+dat$origin <- as.factor(dat$origin)
+dat$mpg_cat <- as.factor(dat$mpg_cat)
+
+set.seed(1514)
+data_split <- initial_split(dat, prop = 0.70)
+training_data <- training(data_split)
+testing_data  <- testing(data_split)
+```
+
