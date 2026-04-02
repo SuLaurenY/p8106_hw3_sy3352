@@ -3,14 +3,17 @@ title: "P8106_HW3_SY3352"
 output: pdf_document
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
-```{r, echo = T, message = FALSE, results='hide', warning=FALSE}
+```{r, echo = T, message = FALSE, results='hide'}
 library(caret)
 library(glmnet)
 library(tidymodels)
 library(pROC)
+library(earth)
+library(pdp)
+library(MASS)
 ```
 
 ```{r}
@@ -28,15 +31,43 @@ testing_data  <- testing(data_split)
 # Problem (a)
 ```{r}
 glm.fit <- glm(mpg_cat ~ .,
-               data   = training_data,
+               data = training_data,
                family = binomial(link = "logit"))
 summary(glm.fit)
 ```
 From the model result, I would say that there are redundant predictors in the model as some predictors has a p value > 0.05, meaning that they are not significant in predicting the response. These predictors are: `cylinders`, `displacement`, `horsepower`, `acceleration`, and `origin3` (Japanese).
 
 # Problem (b)
+```{r}
+ctrl <- trainControl(method = "cv", number = 10,
+                     summaryFunction = twoClassSummary,
+                     classProbs = TRUE)
+set.seed(1514)
+model.mars <- train(x = training_data[1:7], y = training_data$mpg_cat,
+                    method = "earth",
+                    tuneGrid = expand.grid(degree = 1:4, 
+                                           nprune = 2:20),
+                    metric = "ROC",
+                    trControl = ctrl)
+model.mars$bestTune
+plot(model.mars)
+
+set.seed(1514)
+model.cv.glm <- train(x = training_data[1:7], y = training_data$mpg_cat,
+                   method = "glm",
+                   metric = "ROC",
+                   trControl = ctrl)
+
+res <- resamples(list(GLM = model.cv.glm, MARS = model.mars))
+summary(res)
+bwplot(res, metric = "ROC")
+```
+From the resample result, MARS has higher median in ROC and Specificity, lower in Sensitivity compared with logistic regression, though the differences are very small. I would say that here MARS does improve the prediction performance, but the improvement is slight.
 
 # Problem (c) 
+```{r}
+
+```
 
 # Problem (d)
 
