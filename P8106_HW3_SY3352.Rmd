@@ -66,9 +66,40 @@ From the resample result, MARS has higher median in ROC and Specificity, lower i
 
 # Problem (c) 
 ```{r}
-
+lda.fit <- lda(mpg_cat~., data = training_data)
+plot(lda.fit)
+A <- lda.fit$scaling
+A
 ```
 
 # Problem (d)
+```{r}
+set.seed(1514)
+model.cv.lda <- train(mpg_cat~., data = training_data,
+                   method = "lda",
+                   metric = "ROC",
+                   trControl = ctrl)
+
+res_d <- resamples(list(GLM = model.cv.glm, 
+                        MARS = model.mars, 
+                        LDA = model.cv.lda))
+summary(res_d)
+bwplot(res_d, metric = "ROC")
+```
+From the resample result, LDA has the lowest median in ROC and Specificity in the three models except for Sensitivity. It can be concluded that LDA here performs worse than previously used MARS and GLM. Thus here I stick with the choice made in (b) that MARS is the best model. I choose MARS to predic the response.
+
+```{r}
+mars.pred <- predict(model.mars, newdata = testing_data, type = "prob")[, 2]
+roc.mars <- roc(testing_data$mpg_cat, mars.pred)
+plot(roc.mars, legacy.axes = TRUE)
+plot(smooth(roc.mars), col = 4, add = TRUE)
+
+roc.mars$auc[1]
+```
+The AUC for MARS is `r roc.mars$auc[1]`.
 
 # Problem (e)
+```{r}
+
+```
+
