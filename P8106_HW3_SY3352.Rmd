@@ -21,6 +21,7 @@ dat <- read.csv("auto.csv") |> na.omit()
 
 dat$origin <- as.factor(dat$origin)
 dat$mpg_cat <- as.factor(dat$mpg_cat)
+contrasts(dat$mpg_cat)
 
 set.seed(1514)
 data_split <- initial_split(dat, prop = 0.70)
@@ -99,7 +100,13 @@ roc.mars$auc[1]
 The AUC for MARS is `r roc.mars$auc[1]`.
 
 # Problem (e)
+I decide to choose a probability threshold of 0.5. In a context like this (car fuel efficiency), there is no strong need to consider for cost of false negative like in detecting cancer. For a non-medical context a default 0.5 should be reasonable, as it treats both classes equally and predicts the most probable class for each observation.
 ```{r}
+test.pred <- rep("high", length(mars.pred))
+test.pred[mars.pred > 0.5] <- "low"
 
+confusionMatrix(data = as.factor(test.pred),
+                reference = testing_data$mpg_cat,
+                positive = "low")
 ```
-
+Under a 0.5 threshold, the confusion matrix gave **Accuracy : 0.9153 (with CI 0.8497, 0.9586)**, which means that true negative+true  positive takes 91.53% of the data, which indicates that this model is quite good. **No Information Rate : 0.5085** gives the majority class, which takes 50.85%. This is very balanced, indicating that the classifier is very good combined with a high accuracy. The very small P-Value further proves that. **Kappa : 0.83** means that the agreement between my classifier and the true label is quite high. **Sensitivity : 0.8276** and **Specificity : 1.0000** are both very high. As sensitivity is a little bit lower, it indicates that the model is more likely to predict low-mpg cars as high. However this is just some minor issues, overall the model works very well from the confusion matrix results.
